@@ -25,7 +25,6 @@ class RegistrationController extends Controller
 
     public function create(Event $event)
     {
-        // Cek kuota
         if ($event->isFull()) {
             return back()->with('error', 'Sorry, this event is fully booked.');
         }
@@ -35,7 +34,6 @@ class RegistrationController extends Controller
 
     public function store(Request $request, Event $event)
     {
-        // Cek kuota
         if ($event->isFull()) {
             return back()->with('error', 'Sorry, this event is fully booked.');
         }
@@ -47,7 +45,6 @@ class RegistrationController extends Controller
             'institution' => 'nullable|max:100',
         ]);
 
-        // Determine payment status
         $payment_status = $event->price > 0 ? 'pending' : 'free';
 
         $registration = EventRegistration::create([
@@ -73,17 +70,14 @@ class RegistrationController extends Controller
     public function markAttendance(EventRegistration $registration)
     {
         $this->authorizeAdmin();
-        
         $registration->update(['attended' => true]);
-        
-        return back()->with('success', 'Attendance marked successfully.');
+        return back()->with('success', 'Attendance marked successfully!');
     }
 
     public function destroy(EventRegistration $registration)
     {
         $this->authorizeAdmin();
         $registration->delete();
-        
-        return back()->with('success', 'Registration deleted successfully.');
+        return back()->with('success', 'Registration deleted successfully!');
     }
 }

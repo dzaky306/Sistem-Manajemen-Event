@@ -13,6 +13,8 @@ class EventController extends Controller
         abort_unless(auth()->user()?->is_admin, 403, 'Only admin can access this.');
     }
 
+    // ============ ADMIN ROUTES ============
+
     public function index()
     {
         $this->authorizeAdmin();
@@ -29,12 +31,12 @@ class EventController extends Controller
     public function store(Request $request)
     {
         $this->authorizeAdmin();
-        
+
         $validated = $request->validate([
             'title' => 'required|max:200',
             'description' => 'nullable',
             'category' => 'nullable|max:50',
-            'event_date' => 'required|date|after:today',
+            'event_date' => 'required|date',
             'event_time' => 'nullable',
             'venue' => 'required|max:200',
             'capacity' => 'required|integer|min:1',
@@ -45,15 +47,17 @@ class EventController extends Controller
             'status' => 'required|in:draft,published,ongoing,done,cancelled'
         ]);
 
+        // Upload poster
         if ($request->hasFile('poster')) {
             $path = $request->file('poster')->store('posters', 'public');
             $validated['poster'] = $path;
         }
 
-        Event::create($validated);
+        // Simpan event
+        $event = Event::create($validated);
 
-        return redirect()->route('events.index')
-            ->with('success', 'Event created successfully.');
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Event created successfully!');
     }
 
     public function show(Event $event)
@@ -72,7 +76,7 @@ class EventController extends Controller
     public function update(Request $request, Event $event)
     {
         $this->authorizeAdmin();
-        
+
         $validated = $request->validate([
             'title' => 'required|max:200',
             'description' => 'nullable',
@@ -88,6 +92,7 @@ class EventController extends Controller
             'status' => 'required|in:draft,published,ongoing,done,cancelled'
         ]);
 
+        // Upload poster baru kalo ada
         if ($request->hasFile('poster')) {
             // Hapus poster lama
             if ($event->poster) {
@@ -99,32 +104,33 @@ class EventController extends Controller
 
         $event->update($validated);
 
-        return redirect()->route('events.index')
-            ->with('success', 'Event updated successfully.');
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Event updated successfully!');
     }
 
     public function destroy(Event $event)
     {
         $this->authorizeAdmin();
-        
+
         if ($event->poster) {
             Storage::disk('public')->delete($event->poster);
         }
-        
+
         $event->delete();
 
-        return redirect()->route('events.index')
-            ->with('success', 'Event deleted successfully.');
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Event deleted successfully!');
     }
 
-    // Public methods (tanpa auth admin)
+    // ============ PUBLIC ROUTES ============
+
     public function publicIndex()
     {
-        $events = Event::published()
-            ->withCount('registrations')
+        $events = Event::withCount('registrations')
+            ->where('status', 'published')
             ->latest('event_date')
             ->paginate(12);
-        
+
         return view('events.public-index', compact('events'));
     }
 
@@ -133,7 +139,7 @@ class EventController extends Controller
         if ($event->status !== 'published' && !auth()->user()?->is_admin) {
             abort(404);
         }
-        
+
         $event->loadCount('registrations');
         return view('events.public-show', compact('event'));
     }
