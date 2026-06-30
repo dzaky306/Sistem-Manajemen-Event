@@ -30,10 +30,17 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Category</label>
-                    <input type="text" name="category" value="{{ old('category') }}" 
-                           class="w-full border rounded px-3 py-2">
-                </div>
+    <label class="block text-sm font-medium mb-1">Category</label>
+    <select name="category_id" class="w-full border rounded px-3 py-2">
+        <option value="">Select Category</option>
+        @foreach($categories as $cat)
+            <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                {{ $cat->icon ?? '📁' }} {{ $cat->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('category_id') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
+</div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Status</label>
                     <select name="status" class="w-full border rounded px-3 py-2">

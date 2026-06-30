@@ -29,16 +29,21 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <p class="text-sm text-gray-500">Category</p>
-                        <p class="font-medium">{{ $event->category ?? '-' }}</p>
+                        <p class="font-medium">
+                            @if($event->category)
+                                {{ $event->category->icon ?? '📁' }} {{ $event->category->name }}
+                            @else
+                                -
+                            @endif
+                        </p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Status</p>
                         <span class="px-2 py-1 text-xs rounded 
                             @if($event->status == 'published') bg-green-100 text-green-800
-                            @elseif($event->status == 'draft') bg-gray-100 text-gray-800
                             @elseif($event->status == 'ongoing') bg-blue-100 text-blue-800
                             @elseif($event->status == 'done') bg-purple-100 text-purple-800
-                            @else bg-red-100 text-red-800 @endif">
+                            @else bg-gray-100 text-gray-800 @endif">
                             {{ ucfirst($event->status) }}
                         </span>
                     </div>
@@ -74,7 +79,7 @@
                             @if($event->price > 0)
                                 Rp {{ number_format($event->price, 0, ',', '.') }}
                             @else
-                                <span class="text-green-600">FREE</span>
+                                <span class="text-green-600 font-bold">FREE</span>
                             @endif
                         </p>
                     </div>
@@ -93,17 +98,24 @@
 
                 <!-- Tombol Register -->
                 <div class="pt-4 border-t">
-                    @if($event->isFull())
-                        <button disabled class="px-6 py-2 bg-gray-400 text-white rounded cursor-not-allowed">
+                    @if($event->event_date->isPast())
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-3">
+                            ⛔ This event has already passed. Registration is closed.
+                        </div>
+                        <button disabled class="px-6 py-2 bg-red-300 text-black rounded cursor-not-allowed">
+                            ⛔ Event Telah Lewat
+                        </button>
+                    @elseif($event->isFull())
+                        <button disabled class="px-6 py-2 bg-gray-300 text-black rounded cursor-not-allowed">
                             ❌ Fully Booked
                         </button>
                     @elseif($event->status != 'published')
-                        <button disabled class="px-6 py-2 bg-gray-400 text-white rounded cursor-not-allowed">
+                        <button disabled class="px-6 py-2 bg-gray-300 text-black rounded cursor-not-allowed">
                             ⏳ Not Available
                         </button>
                     @else
                         <a href="{{ route('registrations.create', $event) }}" 
-                           class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-black rounded">
+                           class="px-6 py-2 bg-blue-400 hover:bg-blue-500 text-black rounded">
                             ✅ Register Now
                         </a>
                     @endif

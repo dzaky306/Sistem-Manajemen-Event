@@ -19,21 +19,32 @@ class RegistrationController extends Controller
         $registrations = EventRegistration::with('event')
             ->latest()
             ->paginate(15);
-        
+
         return view('registrations.index', compact('registrations'));
     }
 
     public function create(Event $event)
-    {
-        if ($event->isFull()) {
-            return back()->with('error', 'Sorry, this event is fully booked.');
-        }
-
-        return view('registrations.create', compact('event'));
+{
+    // Cek apakah event udah lewat
+    if ($event->event_date->isPast()) {
+        return redirect()->route('events.public')
+            ->with('error', 'This event has already passed!');
     }
+
+    if ($event->isFull()) {
+        return back()->with('error', 'Sorry, this event is fully booked.');
+    }
+
+    return view('registrations.create', compact('event'));
+}
 
     public function store(Request $request, Event $event)
     {
+        if ($event->event_date->isPast()) {
+            return redirect()->route('events.public')
+                ->with('error', 'This event has already passed!');
+        }
+
         if ($event->isFull()) {
             return back()->with('error', 'Sorry, this event is fully booked.');
         }

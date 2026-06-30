@@ -38,14 +38,18 @@
 
                 <!-- Category & Status -->
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Category</label>
-                        <input type="text" name="category" value="{{ old('category', $event->category) }}" 
-                               class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('category') border-red-500 @enderror">
-                        @error('category') 
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p> 
-                        @enderror
-                    </div>
+                   <div>
+    <label class="block text-sm font-medium mb-1">Category</label>
+    <select name="category_id" class="w-full border rounded px-3 py-2">
+        <option value="">Select Category</option>
+        @foreach($categories as $cat)
+            <option value="{{ $cat->id }}" {{ old('category_id', $event->category_id) == $cat->id ? 'selected' : '' }}>
+                {{ $cat->icon ?? '📁' }} {{ $cat->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('category_id') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
+</div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Status *</label>
                         <select name="status" 
@@ -159,7 +163,7 @@
 
             <!-- Buttons -->
             <div class="mt-6 flex gap-3">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-black rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     Update Event
                 </button>
                 <a href="{{ route('admin.events.index') }}" 

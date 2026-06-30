@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\RegistrationController;
@@ -10,24 +11,26 @@ Route::get('/', function () {
     return redirect()->route('events.public');
 });
 
-// Dashboard (auth required)
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-// Profile routes (dari Breeze)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Admin routes
+// ============ ADMIN ROUTES ============
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Categories
+    Route::resource('categories', CategoryController::class);
+    
+    // Events
     Route::resource('events', EventController::class)->except(['show']);
     Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
     
-    // Registrations Management
+    // Registrations
     Route::get('registrations', [RegistrationController::class, 'index'])->name('registrations.index');
     Route::put('registrations/{registration}/attendance', [RegistrationController::class, 'markAttendance'])
         ->name('registrations.attendance');
@@ -35,11 +38,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         ->name('registrations.destroy');
 });
 
-// Public routes (bisa diakses semua)
+// ============ PUBLIC ROUTES ============
 Route::get('/events', [EventController::class, 'publicIndex'])->name('events.public');
 Route::get('/events/{event}', [EventController::class, 'publicShow'])->name('events.public.show');
 
-// Registration routes (public)
 Route::get('/events/{event}/register', [RegistrationController::class, 'create'])
     ->name('registrations.create');
 Route::post('/events/{event}/register', [RegistrationController::class, 'store'])

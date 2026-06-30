@@ -30,7 +30,7 @@
                     @forelse($events as $event)
                     <tr>
                         <td class="px-6 py-4">{{ $event->title }}</td>
-                        <td class="px-6 py-4">{{ $event->category ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $event->category->name ?? '-' }}</td>
                         <td class="px-6 py-4">{{ $event->event_date->format('d M Y') }}</td>
                         <td class="px-6 py-4">Rp {{ number_format($event->price, 0, ',', '.') }}</td>
                         <td class="px-6 py-4">

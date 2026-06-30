@@ -6,7 +6,7 @@
 <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">{{ $event->title }}</h1>
-        <a href="{{ route('admin.events.index') }}" class="text-gray-600 hover:text-gray-800">← Back to Events</a>
+        <a href="{{ route('events.public') }}" class="text-gray-600 hover:text-gray-800">← Back to Events</a>
     </div>
 
     <div class="bg-white shadow rounded-lg overflow-hidden">
@@ -19,7 +19,7 @@
                          class="w-full rounded-lg shadow">
                 @else
                     <div class="w-full h-48 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold">
-                        No Poster
+                        {{ $event->title }}
                     </div>
                 @endif
             </div>
@@ -29,16 +29,21 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <p class="text-sm text-gray-500">Category</p>
-                        <p class="font-medium">{{ $event->category ?? '-' }}</p>
+                        <p class="font-medium">
+                            @if($event->category)
+                                {{ $event->category->icon ?? '📁' }} {{ $event->category->name }}
+                            @else
+                                -
+                            @endif
+                        </p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Status</p>
                         <span class="px-2 py-1 text-xs rounded 
                             @if($event->status == 'published') bg-green-100 text-green-800
-                            @elseif($event->status == 'draft') bg-gray-100 text-gray-800
                             @elseif($event->status == 'ongoing') bg-blue-100 text-blue-800
                             @elseif($event->status == 'done') bg-purple-100 text-purple-800
-                            @else bg-red-100 text-red-800 @endif">
+                            @else bg-gray-100 text-gray-800 @endif">
                             {{ ucfirst($event->status) }}
                         </span>
                     </div>
@@ -74,7 +79,7 @@
                             @if($event->price > 0)
                                 Rp {{ number_format($event->price, 0, ',', '.') }}
                             @else
-                                <span class="text-green-600">FREE</span>
+                                <span class="text-green-600 font-bold">FREE</span>
                             @endif
                         </p>
                     </div>
@@ -91,74 +96,29 @@
                     </div>
                 </div>
 
-                <div class="pt-4 border-t flex gap-3">
-                    <a href="{{ route('admin.events.edit', $event) }}" 
-                       class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black rounded">
-                        ✏️ Edit Event
-                    </a>
-                    <form action="{{ route('admin.events.destroy', $event) }}" method="POST" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" onclick="return confirm('Delete this event?')" 
-                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-black rounded">
-                            🗑️ Delete
+                <!-- Tombol Register -->
+                <div class="pt-4 border-t">
+                    @if($event->event_date->isPast())
+                        <button disabled class="px-6 py-2 bg-red-300 text-black rounded cursor-not-allowed">
+                            ⛔ Event Telah Lewat
                         </button>
-                    </form>
+                    @elseif($event->isFull())
+                        <button disabled class="px-6 py-2 bg-gray-300 text-black rounded cursor-not-allowed">
+                            ❌ Fully Booked
+                        </button>
+                    @elseif($event->status != 'published')
+                        <button disabled class="px-6 py-2 bg-gray-300 text-black rounded cursor-not-allowed">
+                            ⏳ Not Available
+                        </button>
+                    @else
+                        <a href="{{ route('registrations.create', $event) }}" 
+                           class="px-6 py-2 bg-blue-400 hover:bg-blue-500 text-black rounded">
+                            ✅ Register Now
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Daftar Registrasi -->
-    <div class="mt-6">
-        <h3 class="text-lg font-semibold mb-4">Registrations ({{ $event->registrations_count }})</h3>
-        
-        @if($registrations->isEmpty())
-            <div class="bg-gray-50 rounded-lg p-6 text-center text-gray-500">
-                No registrations yet.
-            </div>
-        @else
-            <div class="bg-white shadow rounded-lg overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket Code</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Attended</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($registrations as $reg)
-                        <tr>
-                            <td class="px-6 py-4">{{ $reg->participant_name }}</td>
-                            <td class="px-6 py-4">{{ $reg->email }}</td>
-                            <td class="px-6 py-4 font-mono text-sm">{{ $reg->ticket_code }}</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-xs rounded
-                                    @if($reg->payment_status == 'paid') bg-green-100 text-green-800
-                                    @elseif($reg->payment_status == 'free') bg-blue-100 text-blue-800
-                                    @else bg-yellow-100 text-yellow-800 @endif">
-                                    {{ ucfirst($reg->payment_status) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                @if($reg->attended)
-                                    <span class="text-green-600">✅ Yes</span>
-                                @else
-                                    <span class="text-gray-400">❌ No</span>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <div class="px-6 py-4 border-t">
-                    {{ $registrations->links() }}
-                </div>
-            </div>
-        @endif
     </div>
 </div>
 @endsection

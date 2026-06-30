@@ -11,6 +11,9 @@
                         <a href="{{ route('admin.events.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
                             📋 Manage Events
                         </a>
+                        <a href="{{ route('admin.categories.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
+                            📋 Categories
+                        </a>
                         <a href="{{ route('admin.registrations.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
                             👥 Registrations
                         </a>
@@ -18,6 +21,7 @@
                     <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">
                         📊 Dashboard
                     </a>
+
                 @endauth
             </div>
 

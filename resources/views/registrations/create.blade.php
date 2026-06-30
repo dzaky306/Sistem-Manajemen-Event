@@ -10,6 +10,18 @@
             <a href="{{ route('events.public.show', $event) }}" class="text-gray-600 hover:text-gray-800">← Back</a>
         </div>
 
+        @if(session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if($event->event_date->isPast())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                ⛔ This event has already passed. Registration is closed.
+            </div>
+        @endif
+
         <div class="bg-white shadow rounded-lg p-6">
             <div class="mb-4 p-4 bg-blue-50 rounded">
                 <p class="text-sm text-gray-600">
@@ -55,10 +67,10 @@
                 </div>
 
                 <div class="mt-6 flex gap-3">
-                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-black rounded">
+                    <button type="submit" class="px-6 py-2 bg-blue-400 hover:bg-blue-500 text-black rounded">
                         ✅ Register Now
                     </button>
-                    <a href="{{ route('events.public.show', $event) }}" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 rounded">
+                    <a href="{{ route('events.public.show', $event) }}" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-black rounded">
                         Cancel
                     </a>
                 </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,7 +26,8 @@ class EventController extends Controller
     public function create()
     {
         $this->authorizeAdmin();
-        return view('events.create');
+        $categories = Category::where('is_active', true)->get();
+        return view('events.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -35,7 +37,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'title' => 'required|max:200',
             'description' => 'nullable',
-            'category' => 'nullable|max:50',
+            'category_id' => 'nullable|exists:categories,id',
             'event_date' => 'required|date',
             'event_time' => 'nullable',
             'venue' => 'required|max:200',
@@ -47,14 +49,12 @@ class EventController extends Controller
             'status' => 'required|in:draft,published,ongoing,done,cancelled'
         ]);
 
-        // Upload poster
         if ($request->hasFile('poster')) {
             $path = $request->file('poster')->store('posters', 'public');
             $validated['poster'] = $path;
         }
 
-        // Simpan event
-        $event = Event::create($validated);
+        Event::create($validated);
 
         return redirect()->route('admin.events.index')
             ->with('success', 'Event created successfully!');
@@ -70,7 +70,8 @@ class EventController extends Controller
     public function edit(Event $event)
     {
         $this->authorizeAdmin();
-        return view('events.edit', compact('event'));
+        $categories = Category::where('is_active', true)->get();
+        return view('events.edit', compact('event', 'categories'));
     }
 
     public function update(Request $request, Event $event)
@@ -80,7 +81,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'title' => 'required|max:200',
             'description' => 'nullable',
-            'category' => 'nullable|max:50',
+            'category_id' => 'nullable|exists:categories,id',
             'event_date' => 'required|date',
             'event_time' => 'nullable',
             'venue' => 'required|max:200',
@@ -92,9 +93,7 @@ class EventController extends Controller
             'status' => 'required|in:draft,published,ongoing,done,cancelled'
         ]);
 
-        // Upload poster baru kalo ada
         if ($request->hasFile('poster')) {
-            // Hapus poster lama
             if ($event->poster) {
                 Storage::disk('public')->delete($event->poster);
             }
@@ -124,19 +123,19 @@ class EventController extends Controller
 
     // ============ PUBLIC ROUTES ============
 
-    public function publicIndex()
-    {
-        $events = Event::withCount('registrations')
-            ->where('status', 'published')
-            ->latest('event_date')
-            ->paginate(12);
+public function publicIndex()
+{
+    $events = Event::withCount('registrations')
+        ->where('status', 'published')
+        ->latest('event_date')
+        ->paginate(12);
 
-        return view('events.public-index', compact('events'));
-    }
+    return view('events.public-index', compact('events'));
+}
 
     public function publicShow(Event $event)
     {
-        if ($event->status !== 'published' && !auth()->user()?->is_admin) {
+        if ($event->status !== 'published') {
             abort(404);
         }
 
